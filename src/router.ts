@@ -25,5 +25,10 @@ export default new Router({
       name: 'wizzard',
       component: Wizzard,
     },
+    {
+      path: '/finish',
+      name: 'finish',
+      component: () => import(/* webpackChunkName: "about" */ './views/Finish.vue'),
+    },
   ],
 });

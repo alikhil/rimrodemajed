@@ -12,7 +12,7 @@ export default Vue.extend({
     name: 'wizzard',
     components: {
         Wizzard,
-    }
+    },
 });
 </script>
 

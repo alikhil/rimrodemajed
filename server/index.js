@@ -65,14 +65,14 @@ app.post("/state", (req, res) => {
             req.session.flows[flow] = {};
             break;
     }
-    res.status(200);
+    res.status(200).send({});
 });
 
 app.get("/state", (req, res) => {
     const {flow} = req.query;
 
     if (!(flow in req.session.flows)) {
-        res.send({ status: "NOT_STARTED" }).status(200);
+        res.status(200).send({ status: "NOT_STARTED" });
         return;
     }
 

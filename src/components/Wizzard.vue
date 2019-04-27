@@ -87,6 +87,11 @@ interface UserState {
 export default Vue.extend({
     name: 'Wizzard',
 
+    beforeRouteLeave (to, from, next) {
+    // do stuff
+    // call next() when done
+    next()
+    },
     async beforeRouteUpdate(to, from, next) {
         let flow = to.params.flow || "registration";
         console.log(flow);
@@ -145,16 +150,30 @@ export default Vue.extend({
     },
     methods: {
         async nextClicked(currentPage: number) {
+            let flow = this.$route.params.flow || "registration";
             console.log('next clicked', currentPage)
-            this.$data.page = currentPage + 1;
-            await this.sendPage(this.page);
-            return true; //return false if you want to prevent moving to next page
+            this.page = currentPage + 1;
+            if (this.page == this.steps.length) {
+                // save button was clicked
+                console.log("kek")
+                axios.post(`${api}/state?flow=${flow}`, {
+                    event: "FINISH",
+                }).then(() => {
+                    console.log("ee")
+                    this.$router.push('/finish')
+                }).catch((er) => {
+                    console.log(er);
+                });
+            } else 
+                await this.sendPage(this.page);
+
+            return true;
         },
         async backClicked(currentPage: number) {
             console.log('back clicked', currentPage);
             this.$data.page = currentPage - 1;
             await this.sendPage(this.page);
-            return true; //return false if you want to prevent moving to previous page
+            return true;
         },
         async triggerUpdate() {
             let flow = this.$route.params.flow || "registration";
