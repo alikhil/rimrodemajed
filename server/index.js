@@ -1,40 +1,100 @@
+// @ts-check
 const express = require("express");
+const bodyParser = require("body-parser");
 const app = express();
 const fs = require('fs')
 const path = require('path')
+var cors = require("cors")
 
+const wfFileName = "workflow";
+
+const loadJson = (filepath, encoding = 'utf8') => JSON.parse(fs.readFileSync(path.resolve(__dirname, `${filepath}.json`), {
+    encoding
+}))
 
 const session = require("./session");
 
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    console.log("kek")
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
+
+app.use(bodyParser.json());
 app.use(session);
 
+app.get("/workflow", (req, res) => {
+    const { name } = req.query;
+    if (name === undefined) {
+        console.log("flow name is not set");
+        res.send({
+            error: "name is not set",
+        }).status(400);
+    } else {
+        const json = loadJson(wfFileName);
+        let states = [];
+        if (json.flow && name in json.flow) {
+            states = json.flow[name].states;
 
-app.get("/api/setUsername", (req, res) => {
-  req.session.message = 'Hello World';
+        }
+        res.send({ states });
+    }
 
-  return res.send({username: 123456, userDefaultTown: 898})
+})
+
+app.post("/state", (req, res) => {
+    const {flow} = req.query; 
+    const {event, fields, page} = req.body;
+
+    if (!(flow in req.session.flows)) {
+        req.session.flows[flow] = {};
+    }
+
+    switch (event) {
+        case "UPDATE_FIELDS":
+            console.log(`updating fields for flow ${flow}`);
+            console.log(JSON.stringify(fields))
+            req.session.flows[flow].fields = fields;
+            break;
+        case "CHANGE_PAGE":
+            console.log(`updating current page for flow ${flow} to ${page}`);
+            req.session.flows[flow].page = page;
+            break;
+        case "FINISH":
+            console.log(`flow ${flow} is finished; clearing everything`);
+            req.session.flows[flow] = {};
+            break;
+    }
+    res.status(200);
 });
 
-app.get("/api/getUsername", (req, res) => {
-    console.log('req.session.message', req.session.message);
-    const a = req.session.message;
-    return res.send({username: a, userDefaultTown: 898})
+app.get("/state", (req, res) => {
+    const {flow} = req.query;
 
-  }
-);
+    if (!(flow in req.session.flows)) {
+        res.send({ status: "NOT_STARTED" }).status(200);
+        return;
+    }
 
-// app.get("/getCurrentState", (req, res) =>
-//   res.send({
-//     sucsessful: true, body: {
-//       result: 'SUCCESS',
-//       state: '',
-//       flow: 'radioFlow'
-//     }
-//   })
-// );
-// const WF = loadJson('./workflow');
+    const emptyFields = {
+        name: "",
+        lastname: "",
+        phonePersonal: "",
+        phoneHome: "",
+        phoneWork: "",
+        address: "",
+        city: "",
+    };
 
-app.use((req, res, next) => {console.log(req.session.id); next();});
+    res.send({ status: "ACTIVE", 
+        fields: req.session.flows[flow].fields || emptyFields,
+        page: req.session.flows[flow].page || 0,
+    });
+
+});
+
+
 
 // // Add elevator business hub router
 // app.use(elevatorBH);

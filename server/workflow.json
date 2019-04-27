@@ -1,0 +1,37 @@
+{
+    "flow": {
+        "registration": {
+            "title": "Registration",
+            "states": [ {
+                    "label": "Name & Surname",
+                    "slot": "namePage"
+                },
+                { 
+                    "label": "Address info",
+                    "slot": "addressPage"
+                },
+                {
+                    "label": "Phone info",
+                    "slot": "phonePage"
+                }
+            ]
+        },
+        "order": {
+            "title": "Order",
+            "states": [ {
+                    "label": "Order: Name & Surname",
+                    "slot": "orderNamePage"
+                },
+                { 
+                    "label": "Order: Address info",
+                    "slot": "orderAddressPage"
+                },
+                {
+                    "label": "Order: Phone info",
+                    "slot": "orderPhonePage"
+                }
+            ]
+        }
+        
+    }
+}
