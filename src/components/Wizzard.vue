@@ -88,9 +88,7 @@ export default Vue.extend({
     name: 'Wizzard',
 
     beforeRouteLeave (to, from, next) {
-    // do stuff
-    // call next() when done
-    next()
+        next();
     },
     async beforeRouteUpdate(to, from, next) {
         let flow = to.params.flow || "registration";
@@ -155,11 +153,9 @@ export default Vue.extend({
             this.page = currentPage + 1;
             if (this.page == this.steps.length) {
                 // save button was clicked
-                console.log("kek")
                 axios.post(`${api}/state?flow=${flow}`, {
                     event: "FINISH",
                 }).then(() => {
-                    console.log("ee")
                     this.$router.push('/finish')
                 }).catch((er) => {
                     console.log(er);
