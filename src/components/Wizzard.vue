@@ -119,27 +119,6 @@ export default Vue.extend({
                 address: "",
                 city: "",
             } 
-    //   steps: [
-    //     {
-    //       label: 'Select Items',
-    //       slot: 'page1',
-    //     },
-    //     {
-    //       label: 'Add Constraints',
-    //       slot: 'page2',
-    //     },
-    //     {
-    //       label: 'Review',
-    //       slot: 'page3',
-    //     },
-    //     {
-    //       label: 'Apply',
-    //       slot: 'page4',
-    //       options: {
-    //         nextDisabled: true, // control whether next is disabled or not
-    //       },
-    //     }
-    //   ],
     };
   },
     async beforeCreate() {
@@ -192,21 +171,5 @@ export default Vue.extend({
             });
         }
     },
-    // computed: {
-    //     steps() {
-
-    //     }
-    // }
-    // computed: {
-    //     message() {
-    //         return store.state.name;
-    //     },
-    // },
-    // methods: {
-    //     kek() {
-    //         // this.message = "kek"
-    //         store.commit('setName', 'kek');
-    //     },
-    // },
 });
 </script>

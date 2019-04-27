@@ -16,7 +16,6 @@ const session = require("./session");
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    console.log("kek")
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
   });
@@ -93,84 +92,6 @@ app.get("/state", (req, res) => {
     });
 
 });
-
-
-
-// // Add elevator business hub router
-// app.use(elevatorBH);
-
-// app.post("/radio-bh", (req, res) => {
-
-//     const {cmd, name} = req.query;
-//     let _result, _state, _flow, _title;
-//     let historyList = (req.session && req.session.workflow && req.session.workflow.history) || [];
-//     if (cmd == 'START') {
-//       _state = WF.flow[name].init;
-//       _title = WF.flow[name].title;
-//       _flow = name;
-//       _history = {
-//         id: "1",
-//         state: _state,
-//         flow: _flow,
-//         title: _title,
-//         status: "ACTIVE"
-//       };
-//       historyList.push(_history);
-//     }
-
-//     if (cmd == 'EVENT') {
-//       _currentState = req.session.workflow.state;
-//       _currentFlow = req.session.workflow.flow;
-//       _state = WF.flow[_currentFlow].state[_currentState].events[name].newstate;
-//       _title = WF.flow[_currentFlow].state[_currentState].events[name].title;
-//       _flow = req.session.workflow.flow;
-
-//       _history = {
-//         id: (historyList.length + 1).toString(),
-//         state: _state,
-//         flow: _flow,
-//         title: _title,
-//         status: "ACTIVE"
-//       };
-//       historyList.push(_history);
-//     }
-
-//     if (cmd == 'ABORT') {
-//       let _hist;
-//       let _historyList = [];
-//       for (let i = 0; i < historyList.length; i++) {
-//         _historyList.push(historyList[i]);
-//         if (historyList[i].id == name) {
-//           _hist = historyList[i];
-//           break;
-//         }
-//       }
-
-//       _state = _hist.state
-//       _flow = _hist.flow
-//       historyList = _historyList;
-//     }
-
-//     if (cmd == 'EXIT') {
-//       _state = '';
-//       _flow = '';
-//       historyList = [];
-//     }
-
-//     req.session.workflow = {
-//       state: _state,
-//       flow: _flow,
-//       history: historyList
-//     };
-//     res.send({
-//       result: 'SUCCESS',
-//       state: _state,
-//       flow: _flow,
-//       history: historyList
-//     });
-
-//   }
-// );
 
 app.listen(8090, () => console.log("Listening on port 8090!"));
 
