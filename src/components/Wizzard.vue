@@ -94,7 +94,6 @@ export default Vue.extend({
     },
 
     async beforeRouteUpdate(to, from, next) {
-        console.log('beforeRouteUpdate');
         next();
     },
     data() {
@@ -115,19 +114,15 @@ export default Vue.extend({
   },
 
     async created() {
-        console.log('created: ', this.$route);
 
         if (!routeIdCheck(this.$route, this.$router)) {
             return;
         }
 
-        console.log(this.$route);
         const id = this.$route.params.id || '-1';
-        console.log(id);
         const wf = await axios.get<Flow>(`${api}/state?id=${id}`, {
             responseType: 'json',
         });
-        console.log(wf.data);
         this.$data.steps = wf.data.states;
         this.$data.workflow_loaded = true;
 
@@ -136,7 +131,6 @@ export default Vue.extend({
 
 
         if (wf.data.status === 'ACTIVE') {
-            console.log(wf.data);
             this.$data.fields = wf.data.fields;
             this.$data.page = wf.data.page;
             (this.$refs.wizard as any).goTo(this.$data.page);
@@ -145,7 +139,6 @@ export default Vue.extend({
     },
     watch: {
         async $route(val) {
-            console.log('route updated', val);
             if (!routeIdCheck(val, this.$router)) {
                 return;
             }
@@ -161,7 +154,6 @@ export default Vue.extend({
             await sleep(100);
 
             if (wf.data.status === 'ACTIVE') {
-                console.log(wf.data);
                 this.$data.fields = wf.data.fields;
                 this.$data.page = wf.data.page;
                 (this.$refs.wizard as any).goTo(this.$data.page);
@@ -172,14 +164,12 @@ export default Vue.extend({
 
         async nextClicked(currentPage: number) {
             const flow = this.$route.params.flow || 'registration';
-            console.log('next clicked', currentPage);
             this.page = currentPage + 1;
             await this.sendPage(this.page);
 
             return true;
         },
         async backClicked(currentPage: number) {
-            console.log('back clicked', currentPage);
             this.$data.page = currentPage - 1;
             await this.sendPage(this.page);
             return true;
