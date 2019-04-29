@@ -2,7 +2,7 @@
 
 var globalSession = {
     empty: true,
-    flows: {},
+    ids: {},
 };
 
 module.exports = function(req, res, next) {

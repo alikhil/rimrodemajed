@@ -21,9 +21,10 @@ export default new Router({
       component: () => import(/* webpackChunkName: "about" */ './views/About.vue'),
     },
     {
-      path: '/wizzard/:flow?',
+      path: '/wizzard/:id?',
       name: 'wizzard',
       component: Wizzard,
+
     },
     {
       path: '/finish',

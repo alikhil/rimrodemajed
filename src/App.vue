@@ -1,8 +1,7 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/wizzard">Wizzard</router-link> | 
-      <router-link to="/wizzard/order">Wizzard:Orders</router-link>
+      <router-link to="/wizzard">Wizzard</router-link>
     </div>
     <router-view/>
   </div>

@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import Vue from 'vue';
 import Wizzard from '@/components/Wizzard.vue';
 
 export default Vue.extend({
