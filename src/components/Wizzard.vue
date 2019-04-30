@@ -26,26 +26,6 @@
                      <p>Work phone number</p>
                     <input v-model="fields.phoneWork" v-on:change="triggerUpdate" placeholder="Enter your work phone">
                 </div>
-                <div slot="orderNamePage">
-                  <p>Name</p>
-                    <input v-model="fields.name" v-on:change="triggerUpdate" placeholder="Enter your name">
-                    <p>Lastname</p>
-                    <input v-model="fields.lastname" v-on:change="triggerUpdate" placeholder="Enter your lastname">
-                </div>
-                <div slot="orderAddressPage">
-                      <p>City</p>
-                    <input v-model="fields.city" v-on:change="triggerUpdate" placeholder="Enter your city">
-                    <p>Address</p>
-                    <input v-model="fields.address" v-on:change="triggerUpdate" placeholder="Enter your address">
-                </div>
-                <div slot="orderPhonePage">
-                    <p>Personal phone number</p>
-                    <input v-model="fields.phonePersonal" v-on:change="triggerUpdate" placeholder="Enter your personal phone number">
-                     <p>Home phone number</p>
-                    <input v-model="fields.phoneHome" v-on:change="triggerUpdate" placeholder="Enter your home phone">
-                     <p>Work phone number</p>
-                    <input v-model="fields.phoneWork" v-on:change="triggerUpdate" placeholder="Enter your work phone">
-                </div>
             </vue-good-wizard>
         </div>
     </div>
@@ -55,9 +35,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import axios from 'axios';
-import store from '@/store.ts'
+import store from '@/store.ts';
+import VueRouter, { Route } from 'vue-router';
 
-const api = "http://localhost:8090";
+const api = 'http://localhost:8090';
 
 interface State {
     label: string;
@@ -66,125 +47,150 @@ interface State {
 
 interface Flow {
     states: State[];
-}
-
-interface Fields { 
-        name: string; 
-        lastname: string;
-        phonePersonal: string; 
-        phoneHome: string;
-        phoneWork: string;
-        address: string;
-        city: string;
-    };
-
-interface UserState {
     status: string;
     page: number;
     fields: Fields;
 }
 
+interface Fields {
+        name: string;
+        lastname: string;
+        phonePersonal: string;
+        phoneHome: string;
+        phoneWork: string;
+        address: string;
+        city: string;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function makeid(length: number): string {
+   let result           = '';
+   const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   const charactersLength = characters.length;
+   for (let i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
+
+function routeIdCheck(route: Route, router: VueRouter): boolean {
+    let params = Object.assign({}, route.params);
+    if (!route.params.id) {
+        params = {...params, id : makeid(10) };
+        router.replace({ name: 'wizzard', params });
+        return false;
+    }
+    return true;
+}
+
 export default Vue.extend({
     name: 'Wizzard',
 
-    beforeRouteLeave (to, from, next) {
+    beforeRouteLeave(to, from, next) {
         next();
     },
-    async beforeRouteUpdate(to, from, next) {
-        let flow = to.params.flow || "registration";
-        console.log(flow);
-        const wf = await axios.get<Flow>(`${api}/workflow?name=${flow}`, {
-            responseType: 'json'
-        });
-        this.$data.steps = wf.data.states;
-        this.$data.workflow_loaded = true;
 
-        const state = await axios.get<UserState>(`${api}/state?flow=${flow}`, { responseType: "json" });
-        if (state.data.status === "ACTIVE") {
-            console.log(state.data);
-            this.$data.fields = state.data.fields;
-            this.$data.page = state.data.page;
-            (this.$refs['wizard'] as any).goTo(this.$data.page);
-        }
+    async beforeRouteUpdate(to, from, next) {
         next();
     },
-    data(){
+    data() {
         return {
             steps: [] as State[],
             workflow_loaded: false,
             page: 0,
             fields: {
-                name: "",
-                lastname: "",
-                phonePersonal: "",
-                phoneHome: "",
-                phoneWork: "",
-                address: "",
-                city: "",
-            } 
+                name: '',
+                lastname: '',
+                phonePersonal: '',
+                phoneHome: '',
+                phoneWork: '',
+                address: '',
+                city: '',
+            },
     };
   },
-    async beforeCreate() {
-        
-        let flow = this.$route.params.flow || "registration";
-        console.log(flow);
-        const wf = await axios.get<Flow>(`${api}/workflow?name=${flow}`, {
-            responseType: 'json'
+
+    async created() {
+
+        if (!routeIdCheck(this.$route, this.$router)) {
+            return;
+        }
+
+        const id = this.$route.params.id || '-1';
+        const wf = await axios.get<Flow>(`${api}/state?id=${id}`, {
+            responseType: 'json',
         });
         this.$data.steps = wf.data.states;
         this.$data.workflow_loaded = true;
 
-        const state = await axios.get<UserState>(`${api}/state?flow=${flow}`, { responseType: "json" });
-        if (state.data.status === "ACTIVE") {
-            console.log(state.data);
-            this.$data.fields = state.data.fields;
-            this.$data.page = state.data.page;
-            (this.$refs['wizard'] as any).goTo(this.$data.page);
+        this.$forceUpdate();
+        await sleep(100);
 
+
+        if (wf.data.status === 'ACTIVE') {
+            this.$data.fields = wf.data.fields;
+            this.$data.page = wf.data.page;
+            (this.$refs.wizard as any).goTo(this.$data.page);
         }
+
     },
-    mounted() {
-        console.log(this.$refs)
+    watch: {
+        async $route(val) {
+            if (!routeIdCheck(val, this.$router)) {
+                return;
+            }
+
+            const id = val.params.id;
+            const wf = await axios.get<Flow>(`${api}/state?id=${id}`, {
+                responseType: 'json',
+            });
+            this.$data.steps = wf.data.states;
+            this.$data.workflow_loaded = true;
+
+            this.$forceUpdate();
+            await sleep(100);
+
+            if (wf.data.status === 'ACTIVE') {
+                this.$data.fields = wf.data.fields;
+                this.$data.page = wf.data.page;
+                (this.$refs.wizard as any).goTo(this.$data.page);
+            }
+        },
     },
     methods: {
+
         async nextClicked(currentPage: number) {
-            let flow = this.$route.params.flow || "registration";
-            console.log('next clicked', currentPage)
+            const flow = this.$route.params.flow || 'registration';
             this.page = currentPage + 1;
-            if (this.page == this.steps.length) {
-                // save button was clicked
-                axios.post(`${api}/state?flow=${flow}`, {
-                    event: "FINISH",
-                }).then(() => {
-                    this.$router.push('/finish')
-                }).catch((er) => {
-                    console.log(er);
-                });
-            } else 
-                await this.sendPage(this.page);
+            await this.sendPage(this.page);
 
             return true;
         },
         async backClicked(currentPage: number) {
-            console.log('back clicked', currentPage);
             this.$data.page = currentPage - 1;
             await this.sendPage(this.page);
             return true;
         },
         async triggerUpdate() {
-            let flow = this.$route.params.flow || "registration";
-            await axios.post(`${api}/state?flow=${flow}`, {
-                event: "UPDATE_FIELDS",
+            const id = this.$route.params.id || '-1';
+            await axios.post(`${api}/state?id=${id}`, {
+                event: 'UPDATE_FIELDS',
                 fields: this.fields,
             });
         },
         async sendPage(newPage: number) {
-            let flow = this.$route.params.flow || "registration";
-            await axios.post(`${api}/state?flow=${flow}`, {
-                event: "CHANGE_PAGE",
+            const id = this.$route.params.id || '-1';
+            const resp = await axios.post<{status: string}>(`${api}/state?id=${id}`, {
+                event: 'CHANGE_PAGE',
                 page: newPage,
             });
-        }
+            if (resp.data.status === 'FINISHED') {
+                this.$router.push('/finish');
+            }
+        },
     },
 });
 </script>

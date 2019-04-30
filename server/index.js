@@ -2,15 +2,20 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
-const fs = require('fs')
-const path = require('path')
-var cors = require("cors")
+const fs = require("fs");
+const path = require("path");
+var cors = require("cors");
 
 const wfFileName = "workflow";
+const flowName = "registration";
 
-const loadJson = (filepath, encoding = 'utf8') => JSON.parse(fs.readFileSync(path.resolve(__dirname, `${filepath}.json`), {
-    encoding
-}))
+const loadJson = (filepath, encoding = "utf8") => JSON.parse(fs.readFileSync(path.resolve(__dirname, `${filepath}.json`), {
+    encoding,
+}));
+
+function getStates() {
+    return loadJson(wfFileName).flow[flowName].states;
+}
 
 const session = require("./session");
 
@@ -23,57 +28,44 @@ app.use(function(req, res, next) {
 app.use(bodyParser.json());
 app.use(session);
 
-app.get("/workflow", (req, res) => {
-    const { name } = req.query;
-    if (name === undefined) {
-        console.log("flow name is not set");
-        res.send({
-            error: "name is not set",
-        }).status(400);
-    } else {
-        const json = loadJson(wfFileName);
-        let states = [];
-        if (json.flow && name in json.flow) {
-            states = json.flow[name].states;
-
-        }
-        res.send({ states });
-    }
-
-})
-
 app.post("/state", (req, res) => {
-    const {flow} = req.query; 
+    const {id} = req.query;
     const {event, fields, page} = req.body;
 
-    if (!(flow in req.session.flows)) {
-        req.session.flows[flow] = {};
+    if (!(id in req.session.ids)) {
+        req.session.ids[id] = {};
     }
 
     switch (event) {
         case "UPDATE_FIELDS":
-            console.log(`updating fields for flow ${flow}`);
-            console.log(JSON.stringify(fields))
-            req.session.flows[flow].fields = fields;
+            console.log(`updating fields for session ${id}`);
+            console.log(JSON.stringify(fields));
+            req.session.ids[id].fields = fields;
             break;
         case "CHANGE_PAGE":
-            console.log(`updating current page for flow ${flow} to ${page}`);
-            req.session.flows[flow].page = page;
-            break;
-        case "FINISH":
-            console.log(`flow ${flow} is finished; clearing everything`);
-            req.session.flows[flow] = {};
+            console.log(`updating current page for id ${id} to ${page}`);
+            req.session.ids[id].page = page;
+            if (page === getStates().length) {
+                console.log(`session with id ${id} is finished; clearing everything`);
+                req.session.ids[id] = {};
+                res.status(200).send({status: "FINISHED"});
+                return;
+            }
             break;
     }
-    res.status(200).send({});
+    res.status(200).send({ status: "CONTINUE" });
 });
 
 app.get("/state", (req, res) => {
-    const {flow} = req.query;
+    const {id} = req.query;
 
-    if (!(flow in req.session.flows)) {
-        res.status(200).send({ status: "NOT_STARTED" });
-        return;
+    if (!(id in req.session.ids)) {
+        req.session.ids[id] = {};
+    }
+
+    let status = "ACTIVE";
+    if (!(id in req.session.ids)) {
+        status = "NOT_STARTED";
     }
 
     const emptyFields = {
@@ -86,9 +78,13 @@ app.get("/state", (req, res) => {
         city: "",
     };
 
-    res.send({ status: "ACTIVE", 
-        fields: req.session.flows[flow].fields || emptyFields,
-        page: req.session.flows[flow].page || 0,
+    let states = getStates();
+
+    res.send({
+        fields: req.session.ids[id].fields || emptyFields,
+        page: req.session.ids[id].page || 0,
+        states,
+        status,
     });
 
 });
