@@ -15,6 +15,7 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-session": "^1.16.1",
+    "very-simple-workflow": "1.0.1",
     "vue": "^2.6.10",
     "vue-good-wizard": "^1.4.1",
     "vue-router": "^3.0.3",

@@ -1,23 +1,14 @@
 // @ts-check
 const express = require("express");
 const bodyParser = require("body-parser");
-const app = express();
-const fs = require("fs");
 const path = require("path");
-var cors = require("cors");
+const app = express();
 
-const wfFileName = "workflow";
 const flowName = "registration";
 
-const loadJson = (filepath, encoding = "utf8") => JSON.parse(fs.readFileSync(path.resolve(__dirname, `${filepath}.json`), {
-    encoding,
-}));
-
-function getStates() {
-    return loadJson(wfFileName).flow[flowName].states;
-}
-
 const session = require("./session");
+
+const workflow = require("very-simple-workflow");
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -27,6 +18,10 @@ app.use(function(req, res, next) {
 
 app.use(bodyParser.json());
 app.use(session);
+app.use(workflow({
+    encoding: "utf8",
+    filename: path.resolve(__dirname, "workflow.json"),
+}));
 
 app.post("/state", (req, res) => {
     const {id} = req.query;
@@ -45,7 +40,7 @@ app.post("/state", (req, res) => {
         case "CHANGE_PAGE":
             console.log(`updating current page for id ${id} to ${page}`);
             req.session.ids[id].page = page;
-            if (page === getStates().length) {
+            if (page === req.getStates(flowName).length) {
                 console.log(`session with id ${id} is finished; clearing everything`);
                 req.session.ids[id] = {};
                 res.status(200).send({status: "FINISHED"});
@@ -78,7 +73,7 @@ app.get("/state", (req, res) => {
         city: "",
     };
 
-    let states = getStates();
+    let states = req.getStates(flowName);
 
     res.send({
         fields: req.session.ids[id].fields || emptyFields,
