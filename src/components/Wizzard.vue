@@ -66,6 +66,16 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const emptyFields = {
+    name: '',
+    lastname: '',
+    phonePersonal: '',
+    phoneHome: '',
+    phoneWork: '',
+    address: '',
+    city: '',
+};
+
 function makeid(length: number): string {
    let result           = '';
    const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -101,15 +111,7 @@ export default Vue.extend({
             steps: [] as State[],
             workflow_loaded: false,
             page: 0,
-            fields: {
-                name: '',
-                lastname: '',
-                phonePersonal: '',
-                phoneHome: '',
-                phoneWork: '',
-                address: '',
-                city: '',
-            },
+            fields: emptyFields,
     };
   },
 
@@ -133,8 +135,11 @@ export default Vue.extend({
         if (wf.data.status === 'ACTIVE') {
             this.$data.fields = wf.data.fields;
             this.$data.page = wf.data.page;
-            (this.$refs.wizard as any).goTo(this.$data.page);
+        } else {
+            this.fields = emptyFields;
+            this.page = 0;
         }
+        (this.$refs.wizard as any).goTo(this.$data.page);
 
     },
     watch: {
@@ -156,8 +161,11 @@ export default Vue.extend({
             if (wf.data.status === 'ACTIVE') {
                 this.$data.fields = wf.data.fields;
                 this.$data.page = wf.data.page;
-                (this.$refs.wizard as any).goTo(this.$data.page);
+            } else {
+                this.fields = emptyFields;
+                this.page = 0;
             }
+            (this.$refs.wizard as any).goTo(this.$data.page);
         },
     },
     methods: {
