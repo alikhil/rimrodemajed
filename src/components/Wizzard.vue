@@ -163,7 +163,6 @@ export default Vue.extend({
     methods: {
 
         async nextClicked(currentPage: number) {
-            const flow = this.$route.params.flow || 'registration';
             this.page = currentPage + 1;
             await this.sendPage(this.page);
 
@@ -177,15 +176,15 @@ export default Vue.extend({
         async triggerUpdate() {
             const id = this.$route.params.id || '-1';
             await axios.post(`${api}/state?id=${id}`, {
-                event: 'UPDATE_FIELDS',
-                fields: this.fields,
+                event: 'UPDATE',
+                patch: { fields: this.fields},
             });
         },
         async sendPage(newPage: number) {
             const id = this.$route.params.id || '-1';
             const resp = await axios.post<{status: string}>(`${api}/state?id=${id}`, {
-                event: 'CHANGE_PAGE',
-                page: newPage,
+                event: 'UPDATE',
+                patch: { page: newPage },
             });
             if (resp.data.status === 'FINISHED') {
                 this.$router.push('/finish');
