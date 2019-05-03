@@ -66,6 +66,16 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const emptyFields = {
+    name: '',
+    lastname: '',
+    phonePersonal: '',
+    phoneHome: '',
+    phoneWork: '',
+    address: '',
+    city: '',
+};
+
 function makeid(length: number): string {
    let result           = '';
    const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -101,15 +111,7 @@ export default Vue.extend({
             steps: [] as State[],
             workflow_loaded: false,
             page: 0,
-            fields: {
-                name: '',
-                lastname: '',
-                phonePersonal: '',
-                phoneHome: '',
-                phoneWork: '',
-                address: '',
-                city: '',
-            },
+            fields: emptyFields,
     };
   },
 
@@ -133,8 +135,11 @@ export default Vue.extend({
         if (wf.data.status === 'ACTIVE') {
             this.$data.fields = wf.data.fields;
             this.$data.page = wf.data.page;
-            (this.$refs.wizard as any).goTo(this.$data.page);
+        } else {
+            this.fields = emptyFields;
+            this.page = 0;
         }
+        (this.$refs.wizard as any).goTo(this.$data.page);
 
     },
     watch: {
@@ -156,14 +161,16 @@ export default Vue.extend({
             if (wf.data.status === 'ACTIVE') {
                 this.$data.fields = wf.data.fields;
                 this.$data.page = wf.data.page;
-                (this.$refs.wizard as any).goTo(this.$data.page);
+            } else {
+                this.fields = emptyFields;
+                this.page = 0;
             }
+            (this.$refs.wizard as any).goTo(this.$data.page);
         },
     },
     methods: {
 
         async nextClicked(currentPage: number) {
-            const flow = this.$route.params.flow || 'registration';
             this.page = currentPage + 1;
             await this.sendPage(this.page);
 
@@ -177,15 +184,15 @@ export default Vue.extend({
         async triggerUpdate() {
             const id = this.$route.params.id || '-1';
             await axios.post(`${api}/state?id=${id}`, {
-                event: 'UPDATE_FIELDS',
-                fields: this.fields,
+                event: 'UPDATE',
+                patch: { fields: this.fields},
             });
         },
         async sendPage(newPage: number) {
             const id = this.$route.params.id || '-1';
             const resp = await axios.post<{status: string}>(`${api}/state?id=${id}`, {
-                event: 'CHANGE_PAGE',
-                page: newPage,
+                event: 'UPDATE',
+                patch: { page: newPage },
             });
             if (resp.data.status === 'FINISHED') {
                 this.$router.push('/finish');
