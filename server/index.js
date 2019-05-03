@@ -6,8 +6,6 @@ const app = express();
 
 const flowName = "registration";
 
-const session = require("./session");
-
 const workflow = require("very-simple-workflow");
 
 app.use(function(req, res, next) {
@@ -17,7 +15,6 @@ app.use(function(req, res, next) {
   });
 
 app.use(bodyParser.json());
-app.use(session);
 
 app.use("/state", workflow({
     encoding: "utf8",
