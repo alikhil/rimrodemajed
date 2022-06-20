@@ -18,7 +18,7 @@
     "very-simple-workflow": "2.0.6",
     "vue": "^2.6.10",
     "vue-good-wizard": "^1.4.1",
-    "vue-router": "^3.0.3",
+    "vue-router": "^3.5.4",
     "vuex": "^3.0.1"
   },
   "devDependencies": {
